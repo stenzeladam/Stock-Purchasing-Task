@@ -1,4 +1,4 @@
-from data_loader import DataLoader
+from DataLoader import DataLoader
 
 if __name__ == "__main__":
     
