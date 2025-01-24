@@ -1,0 +1,27 @@
+Before trying to implement unitsPerPallet, consider:
+• For each item, assume that one pallet represents 24 units. 
+• A pallet can supply more than one item from the same supplier. Example: Item A (6 units), Item
+B (6 units) and Item C (12 units), represented as 0.25, 0.25 and 0.5 pallets respectively.
+• Ensure consistency in units (e.g., pallets and units) across all computations.
+• The number of pallets needs to be a whole number (1, 2, 5, etc..)
+
+I'm wondering if this means that units per pallet is always going to be 24, or if I need to consider the price per unit to determine the price of the entire pallet. 
+The problem with determining the price of an entire pallet is that it will have to be a weighted variable, I think. I'm trying to think through the scenarios of what I'm supposed to do.
+
+The main strategy I'm going with is to write the simplest constraints first, and gradually code up the constraints that build in complexity and have variables that need to be computed following some
+logic other than simply reading variables off of the csv files, like "MaxStock" or "MinStock". Eventually this will lead to coding the objective function.
+
+Some quick conceptual math I did for the objective function: ∑_j∑_i(x_ij * Cost per pallet for supplier j)
+Cost per pallet would be a weighted cost, because a pallet contains 24 items from one single supplier, 
+the pallets can contain different items from the same supplier, and the different items can have different prices.
+So if cost per pallet x_ij = ∑_i (((y_ij)^i / (x_ij)) * c_ij), where i ∈ items, j ∈ suppliers, and c_ij is the cost of item i from supplier j, 
+and ((y_ij)^i / (x_ij)) is the expression for the ratio/proportion of item i in pallet x_ij,
+then the total cost is = ∑_j∑_i (x_ij) * (∑_i (((y_ij)^i / (x_ij)) * c_ij))
+which can be simplified = ∑_j∑_i (x_ij * (((y_ij)^i / (x_ij)) * c_ij))
+cancel out x_ij         = ∑_j∑_i (((y_ij)^i / (1)) * c_ij)
+                        = ∑_j∑_i ((y_ij)^i * c_ij)
+So the objective function is = ∑_j∑_i ((y_ij)^i * c_ij) where, (y_ij)^i is the number of units of item i in pallets ordered from supplier j and c_ij is the cost of item i from supplier j
+
+Just a thought, and I'll see if this holds true later.
+
+

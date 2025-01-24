@@ -6,13 +6,15 @@ class Optimization:
         self.items = items
         self.pricing = pricing
         self.suppliers = suppliers
-
+        
         # Indices for the IDs in the csv files start at 1, while indices in Python start at 0
         # Subtract 1 from all IDs in the csv files to make them match Python's indexing
         self.items['ItemID'] -= 1
         self.suppliers['SupplierID'] -= 1
         self.pricing['ItemID'] -= 1
         self.pricing['SupplierID'] -= 1
+
+        self._UNITS_PER_PALLET = 24 # Protected, supposed to be treated as a constant
 
         self.solver = pywraplp.Solver.CreateSolver('GLOP')
         if not self.solver:
@@ -47,11 +49,14 @@ class Optimization:
         for i in self.items:
             
             minStock = self.items.loc[self.items['ItemID'] == i, 'MinStock'].values[0]
-            maxStock = self.items.loc[self.items['ItemID'] == i, 'MaxStock'].values[0]
+            currentStock = self.items.loc[self.items['ItemID'] == i, 'CurrentStock'].values[0]
 
             # Ensure total units ordered for each item i meet the minimum required stock while considering the current stock: 
-            # ∑_j∈Available suppliers for i (x_ij * Units Per Pallet) >= MinRequired Stock_i - Current Stock_i
-    
+            # ∑_j ∈ Available suppliers for i (x_ij * Units Per Pallet) >= MinRequired Stock_i - Current Stock_i 
+            self.solver.Add(
+                sum(self.order[(i, j)] * 24 for j in self.suppliers['SupplierID']) >= minStock - currentStock
+        )
+
 
     def addSupplierConstraints(self):
         # Defines the constraints from suppliers
@@ -70,7 +75,22 @@ class Optimization:
                 sum(self.order[(i,j)] for i in self.items['ItemID']) <= maxPallets
             )
 
-            # Lead Time: ∑_j(x_ij)*Units per pallet + CurrentStock_i <= Expected Demand During Expiry Period_i
+
+            # Lead Time: ∑_j(x_ij * Units per pallet + CurrentStock_i) <= Expected Demand During Expiry Period_i
+            # Assume the expected demand during the expiry period is going to be the AverageDailySale * Expiry (days) for each item.
+            for i in self.items['ItemID']:
+                if i in self._supplier_item_map.get(j, {}):  # Only consider items supplied by supplier j
+                    current_stock = self.items.loc[self.items['ItemID'] == i, 'CurrentStock'].values[0]
+                    avg_daily_sale = self.items.loc[self.items['ItemID'] == i, 'AverageDailySale'].values[0]
+                    expiry_days = self.items.loc[self.items['ItemID'] == i, 'Expiry (days)'].values[0]
+
+                    # Expected demand during expiry period
+                    expected_demand = avg_daily_sale * expiry_days
+
+                    # Add the constraint
+                    self.solver.Add(
+                        sum(self.order[(i, j)] * self._UNITS_PER_PALLET for j in self.suppliers['SupplierID']) + current_stock <= expected_demand
+                    )
     
     def addExpiryConstraints(self):
         # Ensure that the stock ordered for each item is sold at least 15 days before its expiry date:
@@ -80,12 +100,20 @@ class Optimization:
                     expiry = self.items.loc[self.items['ItemID'] == i, 'Expiry (days)'].values[0]
                     currentStock = self.items.loc[self.items['ItemID'] == i, 'CurrentStock'].values[0]
                     maxStock = self.items.loc[self.items['ItemID'] == i, 'MaxStock'].values[0]
-                    ## Units Per Pallet = auxilary method to calculate this?
-                    unitsPerPallet = -999  # Placeholder before calculating method
+                    avgDailySale = self.items.loc[self.items['ItemID'] == i, 'AverageDailySale'].values[0]
+                    
+                    # Calculate the number of days before expiry that we need to ensure stock is sold
+                    daysBeforeExpiry = expiry - 15  # Stock should be sold before 15 days of expiry
+                    expectedDemandExpiryConstraint = avgDailySale * daysBeforeExpiry
 
                     # ∑_j(x_ij * Units Per Pallet + Current Stock_i) <= MaxStock_i
                     self.solver.Add(
-                        sum(self.order[(i, j)] * unitsPerPallet for j in self.suppliers['SupplierID']) + currentStock <= maxStock
+                        sum(self.order[(i, j)] * self._UNITS_PER_PALLET for j in self.suppliers['SupplierID']) + currentStock <= expectedDemandExpiryConstraint
+                    )
+
+                    # Ensure the stock ordered does not exceed max stock
+                    self.solver.Add(
+                        sum(self.order[(i, j)] * self._UNITS_PER_PALLET for j in self.suppliers['SupplierID']) + currentStock <= maxStock
                     )
 
     def addSupplierAvailabilityConstraint(self):
