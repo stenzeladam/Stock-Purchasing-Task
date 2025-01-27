@@ -1,4 +1,6 @@
 from ortools.linear_solver import pywraplp
+import pandas as pd
+import os
 
 class Optimization:
     def __init__(self, items, pricing, suppliers):
@@ -152,12 +154,31 @@ class Optimization:
                 sum(self.order[(i, j)] for i in self.items['ItemID']) <= self.suppliers.loc[self.suppliers['SupplierID'] == j, 'MaxPallets'].values[0]
             )
             
+    def saveSolution(self):
+        solution_data = []
+        for (i, j), var in self.order.items():
+            solution_data.append({
+                'ItemID': i + 1,  # Adjust back to 1-based indexing
+                'SupplierID': j + 1,  # Adjust back to 1-based indexing
+                'Order (Pallets)': var.solution_value()
+            })
+        
+        solution_df = pd.DataFrame(solution_data)
+        
+        # Ensure 'solver_outputs' folder exists
+        output_dir = os.path.join(os.path.dirname(__file__), 'solver_outputs')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Save to CSV
+        output_file = os.path.join(output_dir, 'optimal_purchasing_plan.csv')
+        solution_df.to_csv(output_file, index=False)
+        print(f"Optimal purchasing plan saved to {output_file}")
+
     def solve(self):
         status = self.solver.Solve()
         if status == pywraplp.Solver.OPTIMAL:
             print("Optimal solution found!")
-            for (i, j), var in self.order.items():
-                print(f"Order for item {i} from supplier {j}: {var.solution_value()} pallets")
+            self.saveSolution()
         elif status == pywraplp.Solver.INFEASIBLE:
             print("No feasible solution!")
         else:

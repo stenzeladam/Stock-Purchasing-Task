@@ -14,8 +14,8 @@ def main():
 
     # constraints
     optimizer.addStockConstraints()
-    optimizer.addSupplierConstraints()
-    optimizer.addExpiryConstraints()
+    #optimizer.addSupplierConstraints()
+    #optimizer.addExpiryConstraints()
     #optimizer.addSupplierAvailabilityConstraint()
     #optimizer.mixedPalletConstraint()
 

@@ -8,6 +8,9 @@ B (6 units) and Item C (12 units), represented as 0.25, 0.25 and 0.5 pallets res
 I'm wondering if this means that units per pallet is always going to be 24, or if I need to consider the price per unit to determine the price of the entire pallet. 
 The problem with determining the price of an entire pallet is that it will have to be a weighted variable, I think. I'm trying to think through the scenarios of what I'm supposed to do.
 
+*** I have since realized the units per pallet would always remain constant, and I was confusing units per pallet with the ratio of different items
+from the same supplier within a pallet.
+
 The main strategy I'm going with is to write the simplest constraints first, and gradually code up the constraints that build in complexity and have variables that need to be computed following some
 logic other than simply reading variables off of the csv files, like "MaxStock" or "MinStock". Eventually this will lead to coding the objective function.
 
