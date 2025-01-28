@@ -12,10 +12,9 @@ The task focuses on restocking items cost-effectively, ensuring sufficient stock
 
 1. **Stock Constraints**
    - Total units ordered for each item must meet the minimum required stock, accounting for current stock levels:
-     $$ 
-     \sum_{j \in \text{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i 
-     $$
-
+      $$
+      \sum_{j \in \test{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i
+      $$
 
 2. **Supplier Constraints**
    - **Minimum Pallets**: Each supplier must fulfill a minimum number of pallets.
@@ -29,14 +28,14 @@ The task focuses on restocking items cost-effectively, ensuring sufficient stock
 
 3. **Expiry Constraints**
    - Ensure stock ordered for each item is sold at least 15 days before its expiry:
-     $$
-     \sum_{j} x_{ij} \cdot \text{Units Per Pallet} + \text{Current Stock}_i \leq \text{MaxStock}_i
-     $$
+      $$
+      \sum_{j} x_{ij} \cdot \text{Units Per Pallet} + \text{Current Stock}_i \leq \text{MaxStock}_i
+      $$
 
 
 4. **Supplier Availability**
    - Orders can only be placed with suppliers allowed for a specific item:
-     $$
+      $$
       x_{ij} = 0 \, \text{if } j \not\in \text{Available Suppliers for } i
       $$
 
