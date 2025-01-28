@@ -13,7 +13,7 @@ The task focuses on restocking items cost-effectively, ensuring sufficient stock
 1. **Stock Constraints**
    - Total units ordered for each item must meet the minimum required stock, accounting for current stock levels:
       $$
-      \sum_{j \in \test{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i
+      \sum_{j \in \text{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i
       $$
 
 2. **Supplier Constraints**
