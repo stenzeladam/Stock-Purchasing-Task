@@ -12,36 +12,42 @@ The task focuses on restocking items cost-effectively, ensuring sufficient stock
 
 1. **Stock Constraints**
    - Total units ordered for each item must meet the minimum required stock, accounting for current stock levels:
-     \[
-     \sum_{j \in \text{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i
-     \]
+     $$ 
+     \sum_{j \in \text{Available Suppliers}} x_{ij} \cdot \text{Units Per Pallet} \geq \text{Min Required Stock}_i - \text{Current Stock}_i 
+     $$
+
 
 2. **Supplier Constraints**
    - **Minimum Pallets**: Each supplier must fulfill a minimum number of pallets.
    - **Maximum Pallets**: Orders must not exceed the supplier’s maximum pallet limit.
    - **Lead Time**: Stock ordered should meet expected demand during the lead time without causing overstock:
-     \[
-     \sum_{j} x_{ij} \cdot \text{Units Per Pallet} + \text{Current Stock}_i \leq \text{Expected Demand During Lead Time}_i
-     \]
+
+      $$
+      \sum_{j} x_{ij} \cdot \text{Units Per Pallet} + \text{Current Stock}_i \leq \text{Expected Demand During Lead Time}_i
+      $$
+
 
 3. **Expiry Constraints**
    - Ensure stock ordered for each item is sold at least 15 days before its expiry:
-     \[
+     $$
      \sum_{j} x_{ij} \cdot \text{Units Per Pallet} + \text{Current Stock}_i \leq \text{MaxStock}_i
-     \]
+     $$
+
 
 4. **Supplier Availability**
    - Orders can only be placed with suppliers allowed for a specific item:
-     \[
-     x_{ij} = 0 \, \text{if } j \not\in \text{Available Suppliers for } i
-     \]
+     $$
+      x_{ij} = 0 \, \text{if } j \not\in \text{Available Suppliers for } i
+      $$
+
 
 ### **Objective**
 
 Minimize the total purchasing cost while ensuring all constraints are met:
-\[
+$$
 \text{Total Cost} = \sum_{j} \sum_{i} x_{ij} \cdot \text{Cost Per Pallet for Supplier } j
-\]
+$$
+
 
 ---
 
@@ -55,7 +61,7 @@ The solution is implemented in Python using **OR-Tools**, which provides efficie
    - Map items to their corresponding suppliers and constraints.
 
 2. **Problem Formulation**
-   - Define decision variables \( x_{ij} \), where \( x_{ij} \) represents the number of pallets of item \( i \) ordered from supplier \( j \).
+   - Define decision variables $ x_{ij} \quad \text{where} \quad x_{ij} \, \text{represents the number of pallets of item} \, i \, \text{ordered from supplier} \, j. $
    - Define constraints programmatically based on stock, supplier, expiry, and availability requirements.
    - Set up the objective function to minimize total cost.
 
